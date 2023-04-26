@@ -46,7 +46,7 @@ Flags:
 #### Create a database
 
 ```bash
-gh qldb -n foo/bar -- -s path/to/src -l java
+gh qldb create -n foo/bar -- -s path/to/src -l java
 ```
 
 #### Download a Code Scanning database
