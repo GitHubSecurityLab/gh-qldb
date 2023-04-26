@@ -5,7 +5,7 @@ Tired of having dozens of CodeQL databases scattered around your file system? In
 
 QLDB will organize your databases in a hierarchical structure:
 
-```
+```bash
 /Users/pwntester/codeql-dbs
 └── github.com
    ├── apache
@@ -25,7 +25,7 @@ QLDB will organize your databases in a hierarchical structure:
 
 ### Usage
 
-```
+```bash
 Usage:
   gh qldb [command]
 
@@ -41,7 +41,7 @@ Flags:
   -h, --help   help for gh-qldb
 ```
 
-### Examples:
+### Examples
 
 #### Create a database
 
@@ -63,7 +63,7 @@ gh qldb install -d path/to/database -n apache/logging-log4j2
 
 #### Get information about a database
 
-```       
+```bash
 gh qldb path -n apache/logging-log4j2 -l java -j
 [
   {
@@ -71,4 +71,9 @@ gh qldb path -n apache/logging-log4j2 -l java -j
     "committedDate": "2023-04-06T06:25:30",
     "path": "/Users/pwntester/codeql-dbs/github.com/apache/logging-log4j2/java/9b84404246d516a11091e74ef4cdcf7dfcc63fa4.zip
   }
-]                                                                                                                                                                                                                                                                                                                                                                                       ```
+]
+```
+
+### CDR
+
+Liked the idea? Do you want to apply it to your GitHub projects and clones? Try [`gh cdr`](https://github.com/pwntester/gh-cdr)
