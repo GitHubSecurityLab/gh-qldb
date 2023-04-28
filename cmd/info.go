@@ -9,25 +9,25 @@ import (
   "io/ioutil"
   "encoding/json"
 )
-var pathCmd = &cobra.Command{
-    Use:   "path",
-    Short: "Returns the path to a database stored in the QLDB structure",
-    Long:  `Returns the path to a database stored in the QLDB structure`,
+var infoCmd = &cobra.Command{
+    Use:   "info",
+    Short: "Returns information for a database stored in the QLDB structure",
+    Long:  `Returns information for a database stored in the QLDB structure`,
     Run: func(cmd *cobra.Command, args []string) {
-      path(nwoFlag, languageFlag)
+      info(nwoFlag, languageFlag)
     },
   }
 
 func init() {
-  rootCmd.AddCommand(pathCmd)
-  pathCmd.Flags().StringVarP(&nwoFlag, "nwo", "n", "", "The NWO of the repository to get the database for.")
-  pathCmd.Flags().StringVarP(&languageFlag, "language", "l", "", "The primary language you want the database for.")
-  pathCmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Use json as the output format.")
-  pathCmd.MarkFlagRequired("nwo")
-  pathCmd.MarkFlagRequired("language")
+  rootCmd.AddCommand(infoCmd)
+  infoCmd.Flags().StringVarP(&nwoFlag, "nwo", "n", "", "The NWO of the repository to get the database for.")
+  infoCmd.Flags().StringVarP(&languageFlag, "language", "l", "", "The primary language you want the database for.")
+  infoCmd.Flags().BoolVarP(&jsonFlag, "json", "j", false, "Use json as the output format.")
+  infoCmd.MarkFlagRequired("nwo")
+  infoCmd.MarkFlagRequired("language")
 }
 
-func path(nwo string, language string) {
+func info(nwo string, language string) {
   dir := filepath.Join(utils.GetPath(nwo), language)
   files, err := ioutil.ReadDir(dir)
   if err != nil {
