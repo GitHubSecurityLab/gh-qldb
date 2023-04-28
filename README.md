@@ -46,7 +46,7 @@ Flags:
 #### Create a database
 
 ```bash
-gh qldb -n foo/bar -- -s path/to/src -l java
+gh qldb create -n foo/bar -- -s path/to/src -l java
 ```
 
 #### Download a Code Scanning database
@@ -74,6 +74,6 @@ gh qldb path -n apache/logging-log4j2 -l java -j
 ]
 ```
 
-### CDR
+### Similar projects
 
-Liked the idea? Do you want to apply it to your GitHub projects and clones? Try [`gh cdr`](https://github.com/pwntester/gh-cdr)
+Liked the idea? Do you want to use a similar functionality for managing your GitHub projects and clones? Try [`gh cdr`](https://github.com/pwntester/gh-cdr)
