@@ -35,7 +35,7 @@ Available Commands:
   download    Downloads a CodeQL database from GitHub Code Scanning
   help        Help about any command
   install     Install a local CodeQL database in the QLDB directory
-  path        Returns the path to a database stored in the QLDB structure
+  info        Returns information about a database stored in the QLDB structure
 
 Flags:
   -h, --help   help for gh-qldb
@@ -64,7 +64,7 @@ gh qldb install -d path/to/database -n apache/logging-log4j2
 #### Get information about a database
 
 ```bash
-gh qldb path -n apache/logging-log4j2 -l java -j
+gh qldb info -n apache/logging-log4j2 -l java -j
 [
   {
     "commitSha": "fa2f51e",
