@@ -10,17 +10,13 @@ QLDB will organize your databases in a hierarchical structure:
 └── github.com
    ├── apache
    │  ├── logging-log4j2
-   │  │  ├── java
-   │  │  │  └── fa2f51eb8d5912b92b8aa75693464f3e55d36be9.zip
-   │  │  └── javascript
-   │  │     └── abf13fabc45a2f51eb8d5912b92b8aa75693464f.zip
+   │  │  ├── java─fa2f51eb.zip
+   │  │  └── javascript─abf13fab.zip
    │  └── commons-text
-   │     └── java
-   │        └── e2b291e92bcc272f98d6ca6723994da985d30e07.zip
+   │     └── java-e2b291e9.zip
    └── pwntester
       └── sample-project
-         └── java
-            └── 9b84404246d516a11091e74ef4cdcf7dfcc63fa4.zip
+         └── java─9b844042.zip
 ```
 
 ### Usage
@@ -36,6 +32,7 @@ Available Commands:
   help        Help about any command
   install     Install a local CodeQL database in the QLDB directory
   info        Returns information about a database stored in the QLDB structure
+  list        Returns a list of CodeQL databases stored in the QLDB structure
 
 Flags:
   -h, --help   help for gh-qldb
@@ -72,6 +69,16 @@ gh qldb info -n apache/logging-log4j2 -l java -j
     "path": "/Users/pwntester/codeql-dbs/github.com/apache/logging-log4j2/java/9b84404246d516a11091e74ef4cdcf7dfcc63fa4.zip
   }
 ]
+```
+
+#### List available Databases
+
+```bash
+gh qldb list
+/Users/pwntester/codeql-dbs/github.com/apache/logging-log4j2/java─fa2f51eb.zip
+/Users/pwntester/codeql-dbs/github.com/apache/logging-log4j2/javascript─abf13fab.zip
+/Users/pwntester/codeql-dbs/github.com/apache/commons-text/java-e2b291e9.zip
+/Users/pwntester/codeql-dbs/github.com/pwntester/sample-project/java─9b844042.zip
 ```
 
 ### Similar projects
