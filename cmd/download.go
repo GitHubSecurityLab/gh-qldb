@@ -3,32 +3,32 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/GitHubSecurityLab/gh-qldb/utils"
 	"github.com/cli/go-gh"
 	"github.com/cli/go-gh/pkg/api"
-  "github.com/spf13/cobra"
-  "github.com/GitHubSecurityLab/gh-qldb/utils"
+	"github.com/spf13/cobra"
 )
 
 var downloadCmd = &cobra.Command{
-    Use:   "download",
-    Short: "Downloads a CodeQL database from GitHub Code Scanning",
-    Long:  `Downloads a CodeQL database from GitHub Code Scanning`,
-    Run: func(cmd *cobra.Command, args []string) {
-      download()
-    },
-  }
+	Use:   "download",
+	Short: "Downloads a CodeQL database from GitHub Code Scanning",
+	Long:  `Downloads a CodeQL database from GitHub Code Scanning`,
+	Run: func(cmd *cobra.Command, args []string) {
+		download()
+	},
+}
 
 func init() {
-  rootCmd.AddCommand(downloadCmd)
-  downloadCmd.Flags().StringVarP(&nwoFlag, "nwo", "n", "", "The NWO of the repository to download the database for.")
-  downloadCmd.Flags().StringVarP(&languageFlag, "language", "l", "", "The primary language you want the database for.")
-  downloadCmd.MarkFlagRequired("nwo")
-  downloadCmd.MarkFlagRequired("language")
+	rootCmd.AddCommand(downloadCmd)
+	downloadCmd.Flags().StringVarP(&nwoFlag, "nwo", "n", "", "The NWO of the repository to download the database for.")
+	downloadCmd.Flags().StringVarP(&languageFlag, "language", "l", "", "The primary language you want the database for.")
+	downloadCmd.MarkFlagRequired("nwo")
+	downloadCmd.MarkFlagRequired("language")
 
 }
 
@@ -77,7 +77,7 @@ func download() {
 		}
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -103,7 +103,7 @@ func download() {
 		// create file if not exists
 		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 			// write the DB to disk
-			err = ioutil.WriteFile(path, body, 0755)
+			err = os.WriteFile(path, body, 0755)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -116,4 +116,3 @@ func download() {
 	}
 	fmt.Println("Done")
 }
-

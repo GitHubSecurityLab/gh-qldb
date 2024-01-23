@@ -1,22 +1,22 @@
 package utils
 
 import (
-	"os/exec"
-  "io"
+	"archive/zip"
+	"bytes"
 	"encoding/json"
-  "errors"
-	"gopkg.in/yaml.v3"
-  "os"
-  "path/filepath"
-  "strings"
-  "archive/zip"
-  "bytes"
-  "fmt"
-  "io/ioutil"
-  "log"
+	"errors"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
-	graphql "github.com/shurcooL/githubv4"
+	"gopkg.in/yaml.v3"
+
 	"github.com/cli/go-gh"
+	graphql "github.com/shurcooL/githubv4"
 )
 
 const (
@@ -24,13 +24,16 @@ const (
 	VCS  = "github.com"
 )
 
-func GetPath(nwo string) string {
+func GetBasePath() string {
 	home := os.Getenv("HOME")
-	return filepath.Join(home, ROOT, VCS, nwo)
+	return filepath.Join(home, ROOT, VCS)
+}
+
+func GetPath(nwo string) string {
+	return filepath.Join(GetBasePath(), nwo)
 }
 
 func ValidateDB(dbPath string) error {
-	fmt.Printf("Validating %s DB\n", dbPath)
 	cmd := exec.Command("codeql", "resolve", "database", dbPath)
 	cmd.Env = os.Environ()
 	jsonBytes, err := cmd.CombinedOutput()
@@ -58,7 +61,7 @@ func ExtractDBInfo(body []byte) (string, string, error) {
 				log.Fatal(err)
 			}
 			defer f.Close()
-			yamlBytes, err := ioutil.ReadAll(f)
+			yamlBytes, err := io.ReadAll(f)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -217,7 +220,7 @@ func GetCommitInfo(nwo string, commitSha string) (string, string, error) {
 
 	graphqlClient, err := gh.GQLClient(nil)
 	if err != nil {
-    return "", "", err
+		return "", "", err
 	}
 	var query struct {
 		Repository struct {
@@ -237,7 +240,7 @@ func GetCommitInfo(nwo string, commitSha string) (string, string, error) {
 	}
 	err = graphqlClient.Query("CommitInfo", &query, variables)
 	if err != nil {
-    return "", "", err
+		return "", "", err
 	}
-  return string(query.Repository.Object.Commit.AbbreviatedOid) , query.Repository.Object.Commit.CommittedDate.Format("2006-01-02T15:04:05"), nil
+	return string(query.Repository.Object.Commit.AbbreviatedOid), query.Repository.Object.Commit.CommittedDate.Format("2006-01-02T15:04:05"), nil
 }

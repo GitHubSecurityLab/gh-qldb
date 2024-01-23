@@ -3,11 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
 	"github.com/GitHubSecurityLab/gh-qldb/utils"
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"log"
-	"path/filepath"
 )
 
 var infoCmd = &cobra.Command{
@@ -30,7 +31,7 @@ func init() {
 
 func info(nwo string, language string) {
 	dir := filepath.Join(utils.GetPath(nwo), language)
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +57,7 @@ func info(nwo string, language string) {
 		fmt.Printf("%s", jsonStr)
 	} else {
 		for _, path := range pathList {
-			fmt.Printf("%s (%s)", path["path"], path["committedDate"])
+			fmt.Println(path["path"])
 		}
 	}
 }
