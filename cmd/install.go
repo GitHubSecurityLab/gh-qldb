@@ -147,6 +147,8 @@ func install(nwo string, dbPath string, remove bool) {
 	// Remove DB from the current location if -r flag is set
 	if remove {
 		fmt.Println("Removing DB from", dbPath)
-		os.Remove(dbPath)
+		if err := os.RemoveAll(dbPath); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
