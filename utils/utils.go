@@ -48,12 +48,12 @@ func ValidateDB(dbPath string) error {
 	return nil
 }
 
-func ExtractDBInfo(body []byte) (string, string, error) {
+func ExtractDBInfo(body []byte) (map[string]interface{}, error) {
 	zipReader, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print("Extracting commit version from DB ... ")
+	fmt.Print("Extracting database information ... ")
 	for _, zf := range zipReader.File {
 		if strings.HasSuffix(zf.Name, "codeql-database.yml") {
 			f, err := zf.Open()
@@ -70,14 +70,10 @@ func ExtractDBInfo(body []byte) (string, string, error) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			commitSha := dbData["creationMetadata"].(map[string]interface{})["sha"].(string)
-			fmt.Printf("%s\n", commitSha)
-			// extractionDate := dbData["creationMetadata"].(map[string]interface{})["creationTime"].(string)
-			primaryLanguage := dbData["primaryLanguage"].(string)
-			return commitSha, primaryLanguage, nil
+			return dbData, nil
 		}
 	}
-	return "", "", errors.New("codeql-database.yml not found")
+	return nil, errors.New("codeql-database.yml not found")
 }
 
 // Unzip will decompress a zip archive, moving all files and folders

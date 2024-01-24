@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,23 +33,24 @@ func init() {
 }
 
 func install(nwo string, dbPath string, remove bool) {
-	fmt.Printf("Installing '%s' DB for '%s'\n", dbPath, nwo)
+	fmt.Printf("Installing '%s' database for '%s'\n", dbPath, nwo)
 
 	// Check if the path exists
 	fileinfo, err := os.Stat(dbPath)
 	var zipPath string
 	if os.IsNotExist(err) {
-		log.Fatal(errors.New("DB path does not exist"))
+		log.Fatal(errors.New("Database path does not exist"))
 	}
 	if fileinfo.IsDir() {
-		fmt.Printf("Validating %s DB\n", dbPath)
+		fmt.Printf("Validating '%s' database\n", dbPath)
 		err := utils.ValidateDB(dbPath)
 		if err != nil {
-			fmt.Println("DB is not valid")
+			fmt.Println("Database is not valid")
+			return
 		}
 		// Compress DB
 		zipfilename := filepath.Join(os.TempDir(), "qldb.zip")
-		fmt.Println("Compressing DB to", zipfilename)
+		fmt.Println("Compressing database")
 		if err := utils.ZipDirectory(zipfilename, dbPath); err != nil {
 			log.Fatal(err)
 		}
@@ -57,7 +59,7 @@ func install(nwo string, dbPath string, remove bool) {
 	} else {
 		// Check if the file is a zip
 		if !strings.HasSuffix(dbPath, ".zip") {
-			log.Fatal(errors.New("DB path is not a zip file"))
+			log.Fatal(errors.New("Database is not a zip file"))
 		}
 
 		zipPath = dbPath
@@ -78,10 +80,10 @@ func install(nwo string, dbPath string, remove bool) {
 			// if there is one directory in the tmpdir, use that as the tmpdir
 			tmpdir = filepath.Join(tmpdir, dirEntries[0].Name())
 		}
-		fmt.Printf("Validating %s DB\n", tmpdir)
+		fmt.Printf("Validating '%s' database\n", tmpdir)
 		err = utils.ValidateDB(tmpdir)
 		if err != nil {
-			fmt.Println("DB is not valid")
+			fmt.Println("Database is not valid")
 		}
 	}
 
@@ -95,22 +97,35 @@ func install(nwo string, dbPath string, remove bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	commitSha, primaryLanguage, err := utils.ExtractDBInfo(zipBytes)
+
+	metadata, err := utils.ExtractDBInfo(zipBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+	metadata["provenance"] = nwoFlag
+	commitSha := metadata["creationMetadata"].(map[string]interface{})["sha"].(string)
 	shortCommitSha := commitSha[:8]
+	primaryLanguage := metadata["primaryLanguage"].(string)
+	fmt.Println()
 	fmt.Println("Commit SHA:", commitSha)
 	fmt.Println("Short Commit SHA:", shortCommitSha)
 	fmt.Println("Primary language:", primaryLanguage)
 
+	zipFilename := fmt.Sprintf("%s-%s.zip", primaryLanguage, shortCommitSha)
+	jsonFilename := fmt.Sprintf("%s-%s.json", primaryLanguage, shortCommitSha)
+	dir := utils.GetPath(nwoFlag)
+
 	// Destination path
-	filename := fmt.Sprintf("%s-%s.zip", primaryLanguage, shortCommitSha)
-	destPath := filepath.Join(utils.GetPath(nwo), filename)
-	fmt.Println("Installing DB to", destPath)
+	zipDestPath := filepath.Join(dir, zipFilename)
+	jsonDestPath := filepath.Join(dir, jsonFilename)
+
+	fmt.Println("Installing database to '" + zipDestPath + "'")
 
 	// Check if the DB is already installed
-	if _, err := os.Stat(destPath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(zipDestPath); errors.Is(err, os.ErrNotExist) {
 
 		// Create the directory if it doesn't exist
-		err = os.MkdirAll(filepath.Dir(destPath), 0755)
+		err = os.MkdirAll(filepath.Dir(zipDestPath), 0755)
 		if err != nil {
 			log.Fatal(err)
 			return
@@ -124,7 +139,7 @@ func install(nwo string, dbPath string, remove bool) {
 		}
 		defer srcFile.Close()
 
-		destFile, err := os.Create(destPath)
+		destFile, err := os.Create(zipDestPath)
 		if err != nil {
 			log.Fatal(err)
 			return
@@ -142,11 +157,28 @@ func install(nwo string, dbPath string, remove bool) {
 			log.Fatal(err)
 		}
 	} else {
-		fmt.Println("DB already installed for same commit")
+		fmt.Println("Database already installed for same commit")
 	}
+
+	if _, err := os.Stat(jsonDestPath); errors.Is(err, os.ErrNotExist) {
+		// Convert the map to JSON
+		jsonData, err := json.Marshal(metadata)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Write the JSON data to a file
+		err = os.WriteFile(jsonDestPath, jsonData, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println("Database metadata already exists for same commit")
+	}
+
 	// Remove DB from the current location if -r flag is set
 	if remove {
-		fmt.Println("Removing DB from", dbPath)
+		fmt.Println("Removing database from '" + dbPath + "'")
 		if err := os.RemoveAll(dbPath); err != nil {
 			log.Fatal(err)
 		}

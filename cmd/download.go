@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -83,14 +84,24 @@ func download() {
 		}
 
 		// get the commit this DB was created from
-		commitSha, primaryLanguage, err := utils.ExtractDBInfo(body)
+		metadata, err := utils.ExtractDBInfo(body)
 		if err != nil {
 			log.Fatal(err)
 		}
+		metadata["provenance"] = nwoFlag
+		commitSha := metadata["creationMetadata"].(map[string]interface{})["sha"].(string)
+		shortCommitSha := commitSha[:8]
+		primaryLanguage := metadata["primaryLanguage"].(string)
+		fmt.Println()
+		fmt.Println("Commit SHA:", commitSha)
+		fmt.Println("Short Commit SHA:", shortCommitSha)
+		fmt.Println("Primary language:", primaryLanguage)
 
-		filename := fmt.Sprintf("%s.zip", commitSha)
-		dir := filepath.Join(utils.GetPath(nwoFlag), primaryLanguage)
-		path := filepath.Join(dir, filename)
+		zipFilename := fmt.Sprintf("%s-%s.zip", primaryLanguage, shortCommitSha)
+		jsonFilename := fmt.Sprintf("%s-%s.json", primaryLanguage, shortCommitSha)
+		dir := utils.GetPath(nwoFlag)
+		zipPath := filepath.Join(dir, zipFilename)
+		jsonPath := filepath.Join(dir, jsonFilename)
 
 		// create directory if not exists
 		if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
@@ -100,19 +111,34 @@ func download() {
 			}
 		}
 
-		// create file if not exists
-		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		// create DB file if doesnot exists
+		if _, err := os.Stat(zipPath); errors.Is(err, os.ErrNotExist) {
 			// write the DB to disk
-			err = os.WriteFile(path, body, 0755)
+			err = os.WriteFile(zipPath, body, 0755)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("Writing DB to %s\n", path)
+			fmt.Printf("Writing DB to %s\n", zipPath)
 
 		} else {
-			fmt.Printf("Aborting, DB %s already exists\n", path)
+			fmt.Printf("Aborting, DB %s already exists\n", zipPath)
 		}
 
+		// create Metadata file if doesnot exists
+		if _, err := os.Stat(jsonPath); errors.Is(err, os.ErrNotExist) {
+			// Convert the map to JSON
+			jsonData, err := json.Marshal(metadata)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Write the JSON data to a file
+			err = os.WriteFile(jsonPath, jsonData, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			fmt.Printf("Aborting, DB metadata %s already exists\n", jsonPath)
+		}
 	}
 	fmt.Println("Done")
 }
