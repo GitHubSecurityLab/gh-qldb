@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/GitHubSecurityLab/gh-qldb/utils"
 	"github.com/spf13/cobra"
@@ -30,23 +31,42 @@ func init() {
 }
 
 func info(nwo string, language string) {
-	dir := filepath.Join(utils.GetPath(nwo), language)
-	files, err := os.ReadDir(dir)
+	dir := utils.GetPath(nwo)
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	var pathList []map[string]string
-	for _, f := range files {
-		filename := f.Name()
-		sha := filename[:len(filename)-len(filepath.Ext(filename))]
-		commitSha, committedDate, err := utils.GetCommitInfo(nwo, sha)
+	for _, e := range entries {
+		entryName := e.Name()
+		var name string
+		if filepath.Ext(entryName) == ".zip" {
+			// remove the .zip extension if it exists
+			name = entryName[:len(entryName)-len(filepath.Ext(entryName))]
+		} else if e.IsDir() {
+			name = e.Name()
+		} else {
+			continue
+		}
+
+		// split the name by the "-". first element is the language, second is the short commit sha
+		nameSplit := strings.Split(name, "-")
+		if len(nameSplit) != 2 {
+			log.Fatal(fmt.Errorf("invalid database name: %s", name))
+		}
+		if nameSplit[0] != language {
+			continue
+		}
+		shortSha := nameSplit[1]
+
+		commitSha, committedDate, err := utils.GetCommitInfo2(nwo, shortSha)
 		if err != nil {
 			log.Fatal(err)
 		}
 		pathList = append(pathList, map[string]string{
 			"commitSha":     commitSha,
 			"committedDate": committedDate,
-			"path":          filepath.Join(dir, filename),
+			"path":          filepath.Join(dir, entryName),
 		})
 	}
 	if jsonFlag {

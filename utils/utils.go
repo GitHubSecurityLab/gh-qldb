@@ -148,7 +148,7 @@ func ZipDirectory(zipFileName string, directoryToZip string) error {
 		return err
 	}
 	if !info.IsDir() {
-		return errors.New("directoryToZip is not a directory")
+		return errors.New(directoryToZip + " is not a directory")
 	}
 
 	// Create a new zip file
@@ -243,4 +243,17 @@ func GetCommitInfo(nwo string, commitSha string) (string, string, error) {
 		return "", "", err
 	}
 	return string(query.Repository.Object.Commit.AbbreviatedOid), query.Repository.Object.Commit.CommittedDate.Format("2006-01-02T15:04:05"), nil
+}
+
+func GetCommitInfo2(nwo string, commitSha string) (string, string, error) {
+	restClient, err := gh.RESTClient(nil)
+	response := make(map[string]interface{})
+	err = restClient.Get(fmt.Sprintf("repos/%s/commits/%s", nwo, commitSha), &response)
+	if err != nil {
+		log.Fatal(err)
+	}
+	commitMap := response["commit"].(map[string]interface{})
+	committerMap := commitMap["committer"].(map[string]interface{})
+	dateString := committerMap["date"].(string)
+	return commitSha, dateString, nil
 }
